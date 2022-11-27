@@ -22,6 +22,14 @@
     - name: Start Docker Engine
       systemd:
         name: docker
-        state: start
+        state: started
         enabled: yes
+        
+    - name: Run Hello-World Container
+      shell: |
+        docker run hello-world
+      register: output
+    
+    - name: Printer
+      debug: msg="{{ output.stdout }}"
         
