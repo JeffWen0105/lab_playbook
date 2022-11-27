@@ -7,7 +7,6 @@
       get_url:
         url: "https://download.docker.com/linux/centos/docker-ce.repo"
         dest: "/etc/yum.repos.d/"
-        checksum: "{{ mycrc }}"
         mode: '0644'
         owner: root
         group: root
@@ -25,3 +24,4 @@
         name: docker
         state: start
         enabled: yes
+        
