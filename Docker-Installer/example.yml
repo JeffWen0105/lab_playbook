@@ -1,0 +1,27 @@
+---
+- name:  PlayGround
+  hosts:
+    - servera.lab.example.com
+  tasks:
+    - name: Download REPO
+      get_url:
+        url: "https://download.docker.com/linux/centos/docker-ce.repo"
+        dest: "/etc/yum.repos.d/"
+        checksum: "{{ mycrc }}"
+        mode: '0644'
+        owner: root
+        group: root
+
+    - name: Install Docker Engine
+      yum:
+        name:
+          - docker-ce 
+          - docker-ce-cli 
+          - containerd.io
+          - docker-compose-plugin
+
+    - name: Start Docker Engine
+      systemd:
+        name: docker
+        state: start
+        enabled: yes
