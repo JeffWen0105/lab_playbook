@@ -1,0 +1,12 @@
+---
+- name:  PlayGround
+  hosts:
+    - servera.lab.example.com
+    - serverb.lab.example.com
+    - serverc.lab.example.com
+    - serverd.lab.example.com
+  tasks:
+    - name: Print Hello Ansible
+      debug:
+        msg: "Hello Ansible ~"
+
