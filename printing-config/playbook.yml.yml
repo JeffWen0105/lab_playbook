@@ -1,15 +1,19 @@
 ---
-- name: Install Apache and IPP Sample on serverd
-  hosts: serverd.lab.example.com
+- name: Install Apache and IPP Sample on serverb
+  hosts: serverb.lab.example.com
   gather_facts: no
   vars:
     serverd_services:
     - ippserver
     - httpd
   tasks:
+    - name: Copy rpm file
+      copy:
+        src:  file/ippsample-1.0b1-1.el8.x86_64.rpm
+        path: /tmp/ippsample-1.0b1-1.el8.x86_64.rpm
     - name: Install ippsample RPM (httpd should be installed as a dependency)
       yum:
-        name: http://materials.example.com/classroom/ippsample/ippsample-1.0b1-1.el8.x86_64.rpm
+        name: /tmp/ippsample-1.0b1-1.el8.x86_64.rpm
         state: present
     - name: Create the /var/www/html/ippserver spool directory
       file:
@@ -50,7 +54,7 @@
     - ipp
     - mdns
     queue_name: "rht-printer"
-    device_uri: "ipp://serverd:8000/ipp/print/ipp-everywhere-pdf"
+    device_uri: "ipp://serverb:8000/ipp/print/ipp-everywhere-pdf"
   tasks:
     - name: Install cups and avahi RPMs
       yum:
@@ -58,7 +62,7 @@
         state: present
     - name: Configure CUPS (listens on all ifaces, allows local net access)
       copy:
-        src: files/start/cupsd.conf
+        src: files/cupsd.conf
         dest: /etc/cups/cupsd.conf
     - name: Enable and start avahi-daemon.service and cups.service
       systemd:
