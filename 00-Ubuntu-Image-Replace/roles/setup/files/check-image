@@ -2,7 +2,7 @@
 
 
 export FILENAME=.ubunut.base.qcow2
-export FILEMD5=48d6e29ab313330e101d9eb4d03ded59
+export FILEMD5=ea7f44d2aecb9f9fad69b9c896639c7d
 [[  -f $PWD/$FILENAME ]] ||  exit 1
 export result=`md5sum $PWD/$FILENAME | cut -d" " -f1` 
 [[ "$FILEMD5" != "$result" ]]   &&  exit 1
