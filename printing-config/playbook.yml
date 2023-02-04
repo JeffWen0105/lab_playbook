@@ -1,0 +1,83 @@
+---
+- name: Install Apache and IPP Sample on serverb
+  hosts: serverb.lab.example.com
+  gather_facts: no
+  vars:
+    serverd_services:
+    - ippserver
+    - httpd
+  tasks:
+    - name: Copy rpm file
+      copy:
+        src:  file/ippsample-1.0b1-1.el8.x86_64.rpm
+        path: /tmp/ippsample-1.0b1-1.el8.x86_64.rpm
+    - name: Install ippsample RPM (httpd should be installed as a dependency)
+      yum:
+        name: /tmp/ippsample-1.0b1-1.el8.x86_64.rpm
+        state: present
+    - name: Create the /var/www/html/ippserver spool directory
+      file:
+        path: /var/www/html/ippserver
+        state: directory
+        mode: '0755'
+    - name: Enable and start the ippserver and httpd services
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+        masked: no
+      loop: "{{ serverd_services }}"
+    - name: Open HTTP firewall port
+      firewalld:
+        service: http
+        state: enabled
+        permanent: yes
+        immediate: yes
+    - name: Open 8000/tcp firewall port
+      firewalld:
+        port: 8000/tcp
+        state: enabled
+        permanent: yes
+        immediate: yes
+
+- name: Install CUPS and create print queue on serverc
+  hosts: serverc.lab.example.com
+  gather_facts: no
+  vars:
+    serverc_packages:
+    - cups
+    - avahi
+    serverc_services:
+    - avahi-daemon
+    - cups
+    serverc_ports:
+    - ipp
+    - mdns
+    queue_name: "rht-printer"
+    device_uri: "ipp://serverb:8000/ipp/print/ipp-everywhere-pdf"
+  tasks:
+    - name: Install cups and avahi RPMs
+      yum:
+        name: "{{ serverc_packages }}"
+        state: present
+    - name: Configure CUPS (listens on all ifaces, allows local net access)
+      copy:
+        src: files/cupsd.conf
+        dest: /etc/cups/cupsd.conf
+    - name: Enable and start avahi-daemon.service and cups.service
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+        masked: no
+      loop: "{{ serverc_services }}"
+    - name: Open IPP and mDNS firewall ports
+      firewalld:
+        service: "{{ item }}"
+        state: enabled
+        permanent: yes
+        immediate: yes
+      loop: "{{ serverc_ports }}"
+    - name: Create rht-printer print queue (lpadmin)
+      command: /usr/sbin/lpadmin -p "{{ queue_name }}" -E -v "{{ device_uri }}" -m everywhere
+
