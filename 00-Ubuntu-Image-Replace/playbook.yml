@@ -1,0 +1,6 @@
+---
+- name:  UBUNTU BASE OS IMAGE JOBS
+  hosts: all
+  roles:
+    - setup
+

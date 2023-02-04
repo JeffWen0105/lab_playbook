@@ -1,0 +1,11 @@
+#!/bin/bash
+
+
+export FILENAME=.ubunut.base.qcow2
+export FILEMD5=48d6e29ab313330e101d9eb4d03ded59
+[[  -f $PWD/$FILENAME ]] ||  exit 1
+export result=`md5sum $PWD/$FILENAME | cut -d" " -f1` 
+[[ "$FILEMD5" != "$result" ]]   &&  exit 1
+
+echo "ok"
+exit 0

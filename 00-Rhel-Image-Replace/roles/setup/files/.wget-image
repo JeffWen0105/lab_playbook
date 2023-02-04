@@ -1,0 +1,10 @@
+#!/bin/bash
+
+
+
+export FILEID="1TsPGfKm9f-vc-2M3nFQX38ja4yAT_tk0"
+export FILENAME=".rhel.base.qcow2"
+export HTML=`curl -c ./cookie -s -L "https://drive.google.com/uc?export=download&id=${FILEID}"`
+curl -Lb ./cookie "https://drive.google.com/uc?export=download&`echo ${HTML}|grep -Po '(confirm=[a-zA-Z0-9\-_]+)'`&id=${FILEID}" -o $PWD/${FILENAME}
+
+

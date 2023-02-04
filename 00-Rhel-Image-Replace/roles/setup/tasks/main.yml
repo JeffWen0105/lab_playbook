@@ -1,0 +1,81 @@
+---
+# tasks file for setup
+
+- name : "Check All Dependencies"
+  stat:
+    path: "{{ playbook_dir }}/roles/setup/files/{{ item }}"
+  register: result
+  loop: 
+    - wget-image
+    - check-image
+
+- name: "Check tasks"
+  fail: 
+    msg: "wget-image FILE NOT EXISTS, GIT PULL AGAIN !!!"
+  when: result.results[0].stat.exists is undefined
+
+- name: "Check tasks"
+  fail: 
+    msg: "check-image FILE NOT EXISTS, GIT PULL AGAIN !!"
+  when: result.results[1].stat.exists is undefined
+
+- name: "Waiting For Input To Execute"
+  pause:
+    prompt: "Warning! Please confirm whether you want to execute the change Base OS Image task, if you want to cancel the execution.  ENTER to continue CTRL-C a to quit"
+
+
+- name: "Stop All Machine"
+  shell: |
+    rht-vmctl stop all >/dev/null
+
+
+- name: "Get Machine Status"
+  shell: |
+    rht-vmctl status | grep -E 'servera|serverb|serverc|serverd' | grep 'shut off' | wc -l
+  register: result
+
+- name: "Check tasks"
+  fail: msg="Machine is not ready"
+  when: '(result.stdout|int !=  4)'
+
+
+- name: "Check Rhel image chach exists and in latest version "
+  script: "{{ playbook_dir }}/roles/setup/files/check-image"
+  register: result
+  ignore_errors: true
+
+- name: "Print information"
+  debug:
+    msg: "DURING THE DOWNLOAD PROCESS, THE IMAGE FILE IS LARGE, PLEASE WAIT PATIENTLY......"
+  when: '(result.rc == 1)'
+
+- name: "Fetch Rhel OS Image From Internet"
+  script: "{{ playbook_dir }}/roles/setup/files/wget-image"
+  when: '(result.rc == 1)'
+
+- name: "Update New Base OS Image"
+  shell: |
+    cp "{{ ansible_facts.env.PWD }}/.rhel.base.qcow2" /data/kvm/images/base.qcow2
+
+
+- name: "Change Owner and Permissions"
+  file:
+    dest: /data/kvm/images/base.qcow2
+    owner: qemu
+    group: qemu
+    mode: "0644"
+
+- name: "Reset All Machine"
+  shell: |
+    rht-vmctl fullreset >/dev/null
+  register: result
+
+- name: "Print information"
+  debug:
+    msg: "Reset Failed ... Please try againg..."
+  when: '(result.rc == 1)'
+
+- name: "Print information"
+  debug:
+    msg: "Mission Completed !! Try to use Ping servera, until the machines is turned on ."
+  when: '(result.rc == 0)'

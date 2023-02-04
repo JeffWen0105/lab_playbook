@@ -1,0 +1,11 @@
+#!/bin/bash
+
+
+export FILENAME=.rhel.base.qcow2
+export FILEMD5=29487d7276eec01092d2b5e0f3193c59
+[[  -f $PWD/$FILENAME ]] ||  exit 1
+export result=`md5sum $PWD/$FILENAME | cut -d" " -f1` 
+[[ "$FILEMD5" != "$result" ]]   &&  exit 1
+
+echo "ok"
+exit 0

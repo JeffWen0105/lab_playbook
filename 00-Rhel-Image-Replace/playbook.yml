@@ -1,0 +1,7 @@
+---
+- name:  RHEL BASE OS IMAGE JOBS
+  hosts: all
+  roles:
+    - setup
+
+  
