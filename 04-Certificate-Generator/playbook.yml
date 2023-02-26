@@ -1,0 +1,50 @@
+---
+- name:  Certificate Generator
+  hosts:
+    - all
+  vars:
+    base_path: /var/ssl
+  tasks:
+    - name: Create the path
+      file:
+        path: "{{ base_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Make sure a RSA private key was generated
+      openssl_privatekey:
+        path: "{{ base_path }}/lab.key"
+
+    - name: CSR exists and is correct
+      openssl_csr:
+        path: "{{ base_path }}/lab.csr"
+        privatekey_path: "{{ base_path }}/lab.key"
+        subject_alt_name: "DNS:*.lab.example.com.tw"
+        common_name: lab.example.com.tw
+        C: TW
+        ST: Taiwan
+        L: howhow
+        O: how64bit.com.
+        backup: yes
+
+    - name: Make sure self-signed certificate is correct
+      openssl_certificate:
+        path: "{{ base_path }}/lab.crt"
+        privatekey_path: "{{ base_path }}/lab.key"
+        csr_path: "{{ base_path }}/lab.csr"
+        provider: selfsigned
+        selfsigned_not_after: +90d
+
+    - name: SELinux policy is correct for certificate
+      sefcontext:
+        target: '/var/ssl(/.*)?'
+        setype: cert_t
+        state: present
+
+    - name: Correct SELinux file context for certificate
+      file:
+        path: "{{ base_path }}"
+        state: directory
+        recurse: yes
+        follow: no
+        setype: _default
